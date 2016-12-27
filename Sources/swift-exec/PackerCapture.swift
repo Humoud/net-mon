@@ -1,6 +1,7 @@
 // Refactored From: https://github.com/dfrencham/swiftPCap/blob/master/classes/PacketCapture.swift
-// Updated to Swift 3
-// imported objc
+// This file is just for testing libpcap (pcap.h) will be removed soon
+// 1. Updated to Swift 3
+// 2. imported objc
 //
 //  PacketCapture.swift
 
