@@ -1,5 +1,5 @@
 import Foundation
-import objc
+import c
 
 print("pcap test")
 
