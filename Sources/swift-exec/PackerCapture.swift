@@ -31,12 +31,12 @@ class PacketCapture {
     // device: the osx reference to the network
     //          device you want to capture
     func doPacketCapture(device: String, numberOfPackets: Int32) {
-        var error: UnsafeMutablePointer<CChar>
+        var error : UnsafeMutablePointer<Int8>!
 
         printMessageToConsole(output: "Opening " + device)
 
         // create a new pcap session via pcap.h
-        let pcapSession = pcap_create(device,error)
+        let pcapSession = pcap_create(device, error)
 
         // check for errors, then set the NIC to promiscious mode and activate
         handleError(error: error)
@@ -49,18 +49,19 @@ class PacketCapture {
         // Call back to pcap_loop in pcap.h
         // This is where the magic happens. We pass a closure as the call
         // back (the packet argument)
+        let callback : pcap_handler  = {
+            (args: UnsafeMutablePointer<UInt8>?,
+             pkthdr:UnsafePointer<pcap_pkthdr>?,
+           packet: UnsafePointer<UInt8>?) -> () in
+                    // lets handle the result using a call to a singleton
+                    // we can keep state this way, and not have to
+                    // tool around by passing pointers to UnsafePointers
+                    // and dereferencing later
+                    let pa = PacketAnalyser.sharedInstance
+                    pa.Process()
+        }
         pcap_loop(pcapSession, numberOfPackets,
-            {
-                (args: UnsafeMutablePointer<u_char>,
-                 pkthdr:UnsafePointer<pcap_pkthdr>,
-                 packet: UnsafePointer<u_char>) -> Void in
-                        // lets handle the result using a call to a singleton
-                        // we can keep state this way, and not have to
-                        // tool around by passing pointers to UnsafePointers
-                        // and dereferencing later
-                        let pa = PacketAnalyser.sharedInstance
-                        pa.Process()
-            },
+             callback,
             nil)
 
         printMessageToConsole(output: "Capture complete")
@@ -82,7 +83,7 @@ class PacketCapture {
         print("\u{001B}[0;37m" + output)
     }
 
-    func handleError(error: UnsafeMutablePointer<CChar>) {
+    func handleError(error: UnsafeMutablePointer<Int8>) {
         // print an error with a pretty colour code
         printErrorToConsole(output: error.debugDescription)
         printMessageToConsole(output: "Exiting") // reset console colour
